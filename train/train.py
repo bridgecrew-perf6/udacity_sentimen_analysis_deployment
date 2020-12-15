@@ -67,9 +67,24 @@ def train(model, train_loader, epochs, optimizer, loss_fn, device):
     device       - Where the model and data should be loaded (gpu or cpu).
     """
     
-    # TODO: Paste the train() method developed in the notebook here.
-
-    pass
+    for epoch in range(1, epochs + 1):
+        model.train()
+        total_loss = 0
+        for batch in train_loader:         
+            batch_X, batch_y = batch
+            
+            batch_X = batch_X.to(device)
+            batch_y = batch_y.to(device)
+            
+            # TODO: Complete this train method to train the model provided.
+            optimizer.zero_grad()
+            output= model(batch_X)
+            loss= loss_fn(output, batch_y)
+            loss.backward()
+            optimizer.step()
+            
+            total_loss += loss.data.item()
+        print("Epoch: {}, BCELoss: {}".format(epoch, total_loss / len(train_loader)))
 
 
 if __name__ == '__main__':
@@ -93,6 +108,8 @@ if __name__ == '__main__':
                         help='size of the hidden dimension (default: 100)')
     parser.add_argument('--vocab_size', type=int, default=5000, metavar='N',
                         help='size of the vocabulary (default: 5000)')
+    parser.add_argument('--learning_rate', type=float, default=0.001, metavar='F',
+                        help='Learning Rate for optimizer default 0.001')
 
     # SageMaker Parameters
     parser.add_argument('--hosts', type=list, default=json.loads(os.environ['SM_HOSTS']))
@@ -122,7 +139,7 @@ if __name__ == '__main__':
     ))
 
     # Train the model.
-    optimizer = optim.Adam(model.parameters())
+    optimizer = optim.Adam(model.parameters(), lr= args.learning_rate)
     loss_fn = torch.nn.BCELoss()
 
     train(model, train_loader, args.epochs, optimizer, loss_fn, device)

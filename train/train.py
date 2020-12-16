@@ -3,7 +3,7 @@ import json
 import os
 import pickle
 import sys
-import sagemaker_containers
+#import sagemaker_containers
 import pandas as pd
 import torch
 import torch.optim as optim
@@ -94,7 +94,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     # Training Parameters
-    parser.add_argument('--batch-size', type=int, default=512, metavar='N',
+    parser.add_argument('--batch_size', type=int, default=512, metavar='N',
                         help='input batch size for training (default: 512)')
     parser.add_argument('--epochs', type=int, default=10, metavar='N',
                         help='number of epochs to train (default: 10)')

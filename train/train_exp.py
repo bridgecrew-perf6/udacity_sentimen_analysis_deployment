@@ -10,6 +10,7 @@ import torch.optim as optim
 import torch.utils.data
 
 from model import LSTMClassifier
+from shutil import copyfile
 
 def model_fn(model_dir):
     """Load the PyTorch model from the `model_dir` directory."""
@@ -45,7 +46,8 @@ def model_fn(model_dir):
 def _get_train_data_loader(batch_size, training_dir):
     print("Get train data loader.")
 
-    train_data = pd.read_csv(os.path.join(training_dir, "train.csv"), header=None, names=None)
+    train_data = pd.read_csv(os.path.join(training_dir, "train_sample.csv"), header=None, names=None)
+    #train_data= train_data[:250]
 
     train_y = torch.from_numpy(train_data[[0]].values).float().squeeze()
     train_X = torch.from_numpy(train_data.drop([0], axis=1).values).long()
@@ -114,12 +116,17 @@ if __name__ == '__main__':
     # SageMaker Parameters
     parser.add_argument('--hosts', type=list, default=json.loads(os.environ['SM_HOSTS']))
     parser.add_argument('--current-host', type=str, default=os.environ['SM_CURRENT_HOST'])
-    parser.add_argument('--model_dir', type=str, default=os.environ['SM_MODEL_DIR'])
-    parser.add_argument('--data_dir', type=str, default=os.environ['SM_CHANNEL_TRAINING'])
+    parser.add_argument('--model-dir', type=str, default=os.environ['SM_MODEL_DIR'])
+    parser.add_argument('--data-dir', type=str, default=os.environ['SM_CHANNEL_TRAINING'])
     parser.add_argument('--num_gpus', type=int, default=os.environ['SM_NUM_GPUS'])
 
     args = parser.parse_args()
     print("model_dir: "+ str(args.model_dir))
+    print(os.curdir)
+    print(args.model_dir)
+    print(args.data_dir)
+    
+    
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Using device {}.".format(device))
@@ -164,3 +171,10 @@ if __name__ == '__main__':
     model_path = os.path.join(args.model_dir, 'model.pth')
     with open(model_path, 'wb') as f:
         torch.save(model.cpu().state_dict(), f)
+        
+        
+    subfolder= os.mkdir(os.path.join(args.model_dir, 'code'))
+    copyfile(os.path.join(args.data_dir, 'inference.py'), os.path.join(args.model_dir, 'code/inference.py'))
+    copyfile(os.path.join(args.data_dir, 'requirements.txt'), os.path.join(args.model_dir, 'code/requirements.txt'))
+    
+    
